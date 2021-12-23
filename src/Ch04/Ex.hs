@@ -4,13 +4,6 @@ module Ch04.Ex where
 -- list) is a palindrome. Here, you’ll want to use a function called
 -- reverse, a predefined function that does what it sounds like:
 
-isPalindrome :: (Eq a) => [a] -> Bool
-isPalindrome x = y == z
-  where
-    middle = length x `div` 2
-    y = take middle x
-    z = reverse $ drop (if length x `mod` 2 == 1 then middle + 1 else middle) x
-
 -- 9. Write a function to return the absolute value of a number using
 -- an if-then-else expression:
 
@@ -54,6 +47,16 @@ f2 a = a
 f3 :: (a, b) -> a
 f3 = fst
 
+f4 :: [p] -> Int
 f4 = s
 
+z :: Bool
 z = isPalindrome "racecar"
+
+
+isPalindrome :: (Eq a) => [a] -> Bool
+isPalindrome x = y == z
+  where
+    middle = length x `div` 2
+    y = take middle x
+    z = reverse $ drop (if length x `mod` 2 == 1 then middle + 1 else middle) x
