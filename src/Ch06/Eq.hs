@@ -1,4 +1,4 @@
-module Ch06.Ex where
+module Ch06.Eq where
 
 data DayOfWeek
   = Mon
