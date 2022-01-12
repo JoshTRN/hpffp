@@ -41,6 +41,17 @@ library
       Ch04.GreetIfCool1
       Ch04.GreetIfCool2
       Ch04.Mood
+      Ch05.DetermineType
+      Ch05.Ex
+      Ch05.TypeInference2
+      Ch06.Enum
+      Ch06.Eq
+      Ch06.Num
+      Ch06.Ord
+      Ch07.Ex
+      Ch08.Ex
+      Ch09.Ex
+      Ch10.Ex
       Lib
   other-modules:
       Paths_test

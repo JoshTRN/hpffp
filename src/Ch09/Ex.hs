@@ -187,23 +187,11 @@ myMaximumBy f (x : xs)
   where
     compare f x y =
       case f x y of
-        GT -> x
         LT -> y
-        EQ -> x
-
+        _ -> x
 
 myMinimumBy :: (a -> a -> Ordering) -> [a] -> a
-myMinimumBy _ [] = error "cannot take minimum of empty list"
-myMinimumBy f [x] = x
-myMinimumBy f (x : xs)
-  | length xs == 1 = compare f x (head xs)
-  | otherwise = myMinimumBy f (compare f x (head xs) : tail xs)
-  where
-    compare f x y =
-      case f x y of
-        GT -> y
-        LT -> x
-        EQ -> x
+myMinimumBy = myMaximumBy . flip
 
 -- List and Cons example
 data List a = Nil | Cons a (List a)
