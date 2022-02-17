@@ -1,5 +1,4 @@
-import GHC.Float (expts10)
--- module Ch07.Ex where
+module Ch07.Ex where
 
 myNum :: Num a => a
 myNum = 1
