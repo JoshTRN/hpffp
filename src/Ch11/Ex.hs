@@ -4,6 +4,8 @@
 import GHC.Float (expts10)
 import Data.Int ( Int8 )
 import Control.Exception (ErrorCall(ErrorCallWithLocation))
+import Data.Time (parseTimeOrError)
+import Data.List (nub)
 
 data PugType = PugData
 --     [1]       [2]
@@ -96,18 +98,21 @@ data Example0 =
   Example0
   deriving (Eq, Show)
 
-data Example1 =
-  Example1 Int
+data Example1
+  = Example1 Int
   deriving (Eq, Show)
 
 data Example2 =
   Example2 Int String
   deriving (Eq, Show)
 
-data MyType = MyVal Int
+data MyType
+  = MyVal Int
   deriving (Eq, Show)
 
-data Example = MakeExample Int deriving Show
+data Example
+  = MakeExample Int
+  deriving (Show)
 
 -- data Goats = Goats Int deriving (Eq, Show)
 
@@ -333,6 +338,7 @@ data ProgLang
   | Agda
   | Idris
   | PureScript
+  | Lisp
   deriving (Eq, Show)
 
 data Programmer = Programmer
@@ -368,28 +374,44 @@ allLanguages =
   [ Haskell,
     Agda,
     Idris,
-    PureScript
+    PureScript,
+    Lisp
   ]
 
 allProgrammers :: [Programmer]
 allProgrammers = [ Programmer {os = a, lang = b} | a <- allOperatingSystems, b <- allLanguages]
-  -- [ Programmer {os = GnuPlusLinux, lang = Haskell},
-  --   Programmer {os = GnuPlusLinux, lang = Agda},
-  --   Programmer {os = GnuPlusLinux, lang = Idris},
-  --   Programmer {os = GnuPlusLinux, lang = PureScript},
-  --   Programmer {os = OpenBSDPlusNevermindJustBSDS, lang = Haskell},
-  --   Programmer {os = OpenBSDPlusNevermindJustBSDS, lang = Agda},
-  --   Programmer {os = OpenBSDPlusNevermindJustBSDS, lang = Idris},
-  --   Programmer {os = OpenBSDPlusNevermindJustBSDS, lang = PureScript},
-  --   Programmer {os = Mac, lang = Haskell},
-  --   Programmer {os = Mac, lang = Agda},
-  --   Programmer {os = Mac, lang = Idris},
-  --   Programmer {os = Mac, lang = PureScript},
-  --   Programmer {os = Windows, lang = Haskell},
-  --   Programmer {os = Windows, lang = Agda},
-  --   Programmer {os = Windows, lang = Idris},
-  --   Programmer {os = Windows, lang = PureScript}
-  -- ]
+
+-- [ Programmer {os = GnuPlusLinux, lang = Haskell},
+--   Programmer {os = GnuPlusLinux, lang = Agda},
+--   Programmer {os = GnuPlusLinux, lang = Idris},
+--   Programmer {os = GnuPlusLinux, lang = PureScript},
+--   Programmer {os = OpenBSDPlusNevermindJustBSDS, lang = Haskell},
+--   Programmer {os = OpenBSDPlusNevermindJustBSDS, lang = Agda},
+--   Programmer {os = OpenBSDPlusNevermindJustBSDS, lang = Idris},
+--   Programmer {os = OpenBSDPlusNevermindJustBSDS, lang = PureScript},
+--   Programmer {os = Mac, lang = Haskell},
+--   Programmer {os = Mac, lang = Agda},
+--   Programmer {os = Mac, lang = Idris},
+--   Programmer {os = Mac, lang = PureScript},
+--   Programmer {os = Windows, lang = Haskell},
+--   Programmer {os = Windows, lang = Agda},
+--   Programmer {os = Windows, lang = Idris},
+--   Programmer {os = Windows, lang = PureScript}
+-- ]
+
+-- same as allProgrammers
+allProgrammers' :: [Programmer]
+allProgrammers' = concatMap (`pair` allOperatingSystems) allLanguages
+  where
+    pair lang = map (\a -> Programmer { os = a, lang = lang})
+
+-- same as allProgrammers and allProgrammers'
+allProgrammers'' :: [Programmer]
+allProgrammers'' = go allLanguages
+  where
+    go [] = []
+    go (x:xs) = pair x allOperatingSystems ++ go xs
+    pair lang = map (\a -> Programmer { os = a, lang = lang})
 
 data ThereYet
   = There Float Int Bool
