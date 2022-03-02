@@ -1,11 +1,13 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 import GHC.Float (expts10)
 import Data.Int ( Int8 )
-import Control.Exception (ErrorCall(ErrorCallWithLocation))
 import Data.Time (parseTimeOrError)
 import Data.List (nub)
+import Control.Arrow (ArrowChoice(right))
+import Data.Char (isUpper, isLower, ord, chr)
 
 data PugType = PugData
 --     [1]       [2]
@@ -476,4 +478,283 @@ data Car' = Car'
 data Automobile = Null
   | Automobile Car'
   deriving (Eq, Show)
+
+
+data Quantum
+  = Yes
+  | No
+  | Both
+  deriving (Eq, Show)
+
+quantSum1 :: Either Quantum Quantum
+quantSum1 = Right Yes
+
+quantSum2 :: Either Quantum Quantum
+quantSum2 = Right No
+
+quantSum3 :: Either Quantum Quantum
+quantSum3 = Right Both
+
+quantSum4 :: Either Quantum Quantum
+quantSum4 = Left Yes
+
+quantSum5 :: Either Quantum Quantum
+quantSum5 = Left No
+
+quantSum6 :: Either Quantum Quantum
+quantSum6 = Left Both
+
+quantProd1 :: (Quantum, Quantum)
+quantProd1 = (Yes, Yes)
+
+quantProd2 :: (Quantum, Quantum)
+quantProd2 = (Yes, No)
+
+quantProd3 :: (Quantum, Quantum)
+quantProd3 = (Yes, Both)
+
+quantProd4 :: (Quantum, Quantum)
+quantProd4 = (No, Yes)
+
+quantProd5 :: (Quantum, Quantum)
+quantProd5 = (No, No)
+
+quantProd6 :: (Quantum, Quantum)
+quantProd6 = (No, Both)
+
+quantProd7 :: (Quantum, Quantum)
+quantProd7 = (Both, Yes)
+
+quantProd8 :: (Quantum, Quantum)
+quantProd8 = (Both, No)
+
+quantProd9 :: (Quantum, Quantum)
+quantProd9 = (Both, Both)
+
+quantFlip1 :: Quantum -> Quantum
+quantFlip1 Yes = Yes
+quantFlip1 No = Yes
+quantFlip1 Both = Yes
+
+quantFlip2 :: Quantum -> Quantum
+quantFlip2 Yes = Yes
+quantFlip2 No = Yes
+quantFlip2 Both = No
+
+quantFlip3 :: Quantum -> Quantum
+quantFlip3 Yes = Yes
+quantFlip3 No = Yes
+quantFlip3 Both = Both
+
+quantFlip4 :: Quantum -> Quantum
+quantFlip4 Yes = Yes
+quantFlip4 No = No
+quantFlip4 Both = Yes
+
+quantFlip5 :: Quantum -> Quantum
+quantFlip5 Yes = Yes
+quantFlip5 No = No
+quantFlip5 Both = No
+
+quantFlip6 :: Quantum -> Quantum
+quantFlip6 Yes = Yes
+quantFlip6 No = No
+quantFlip6 Both = Both
+
+quantFlip7 :: Quantum -> Quantum
+quantFlip7 Yes = No
+quantFlip7 No = Yes
+quantFlip7 Both = Yes
+
+convert1 :: Quantum -> Bool
+convert1 Yes = True
+convert1 No = True
+convert1 Both = True
+
+convert2 :: Quantum -> Bool
+convert2 Yes = True
+convert2 No = True
+convert2 Both = False
+
+convert3 :: Quantum -> Bool
+convert3 Yes = True
+convert3 No = False
+convert3 Both = True
+
+convert4 :: Quantum -> Bool
+convert4 Yes = True
+convert4 No = False
+convert4 Both = False
+
+convert5 :: Quantum -> Bool
+convert5 Yes = False
+convert5 No = True
+convert5 Both = True
+
+convert6 :: Quantum -> Bool
+convert6 Yes = False
+convert6 No = True
+convert6 Both = False
+
+convert7 :: Quantum -> Bool
+convert7 Yes = False
+convert7 No = False
+convert7 Both = True
+
+convert8 :: Quantum -> Bool
+convert8 Yes = False
+convert8 No = False
+convert8 Both = False
+
+data Quad
+  = One
+  | Two
+  | Three
+  | Four
+  deriving (Eq, Show)
+
+eQuad :: Either Quad Quad
+eQuad = undefined -- 8 possibilities
+
+prodQuad :: (Quad, Quad)
+prodQuad = undefined -- 16 possibilities
+
+funcQuad :: Quad -> Quad
+funcQuad = undefined -- 256 possibilities
+
+prodTBool :: (Bool, Bool, Bool)
+prodTBool = undefined -- 8 possibilities
+
+gTwo :: Bool -> Bool -> Bool
+gTwo = undefined -- 16 possibilities
+
+fTwo :: Bool -> Quad -> Quad
+fTwo = undefined -- 65536 posssibilities
+
+data Silly a b c d
+  = MkSilly a b c d
+  deriving (Show)
+
+data List a = Nil | Cons a (List a)
+
+data BinaryTree a
+  = Leaf
+  | Node (BinaryTree a) a (BinaryTree a)
+  deriving (Eq, Ord, Show)
+
+insert' :: Ord a => a -> BinaryTree a -> BinaryTree a
+insert' b Leaf = Node Leaf b Leaf
+insert' b (Node left a right)
+  | b == a = Node left a right
+  | b < a = Node (insert' b left) a right
+  | b > a = Node left a (insert' b right)
+
+mapTree :: (a -> b) -> BinaryTree a -> BinaryTree b
+mapTree _ Leaf = Leaf
+mapTree f (Node left a right) =
+  Node (mapTree f left) (f a) (mapTree f right)
+
+testTree' :: BinaryTree Integer
+testTree' =
+  Node
+    (Node Leaf 3 Leaf)
+    1
+    (Node Leaf 4 Leaf)
+
+
+mapExpected :: BinaryTree Integer
+mapExpected =
+  Node
+    (Node Leaf 4 Leaf)
+    2
+    (Node Leaf 5 Leaf)
+
+mapOkay :: IO ()
+mapOkay =
+  if mapTree (+1) testTree' == mapExpected
+  then print "yup OK!"
+  else error "test failed!"
+
+preorder :: BinaryTree a -> [a]
+preorder Leaf = []
+preorder (Node left a right) = [a] ++ preorder left ++ preorder right
+
+inorder :: BinaryTree a -> [a]
+inorder Leaf = []
+inorder (Node left a right) = preorder left ++ [a] ++ preorder right
+
+postorder :: BinaryTree a -> [a]
+postorder Leaf = []
+postorder (Node left a right) = preorder left ++ preorder right ++ [a]
+
+testTree :: Num a => BinaryTree a
+testTree =
+  Node
+    (Node Leaf 1 Leaf)
+    2
+    (Node Leaf 3 Leaf)
+
+testPreorder :: IO ()
+testPreorder =
+  if preorder testTree == [2, 1, 3]
+  then putStrLn "Preorder fine!"
+  else putStrLn "Bad news bears."
+
+testInorder :: IO ()
+testInorder =
+  if inorder testTree == [1, 2, 3]
+  then putStrLn "Inorder fine!"
+  else putStrLn "Bad news bears."
+
+testPostorder :: IO ()
+testPostorder =
+  if postorder testTree == [1, 3, 2]
+  then putStrLn "Postorder fine!"
+  else putStrLn "Bad news bears"
+
+main :: IO ()
+main = do
+  testPreorder
+  testInorder
+  testPostorder
+
+foldTree :: (a -> b -> b) -> b -> BinaryTree a -> b
+foldTree _ x Leaf = x
+foldTree f x (Node left a right) = foldTree f (foldTree f (f a x) left) right
+
+-- mapTree :: (a -> b) -> BinaryTree a -> BinaryTree b
+-- mapTree _ Leaf = Leaf
+-- mapTree f (Node left a right) =
+--   Node (mapTree f left) (f a) (mapTree f right)
+data Weekday
+  = Monday
+  | Tuesday
+  | Wednesday
+  | Thursday
+  | Friday
+
+f :: Show a => (a, b) -> IO (a, b)
+f t@(a, _) = do
+  print a
+  return t
+
+g :: [a] -> a
+g xs = xs !! (length xs - 1)
+
+vigenere :: String -> String
+vigenere = undefined
+
+-- ceaser :: Int -> String -> String
+-- ceaser 0 x = x
+-- ceaser _ "" = ""
+-- ceaser shift str = map cipherChar str
+--   where
+--     cipherChar x
+--       | isUpper x = change x (ord 'Z') shift
+--       | isLower x = change x (ord 'z') shift
+--       | otherwise = x
+--       where
+--         change char last shift
+--           | (ord char + shift) > last = chr (ord char - 26 + shift)
+--           | otherwise = chr (ord char + shift)
 
