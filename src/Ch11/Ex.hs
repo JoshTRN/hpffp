@@ -2,12 +2,14 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
 
-import GHC.Float (expts10)
+import GHC.Float (expts10, word2Double)
 import Data.Int ( Int8 )
 import Data.Time (parseTimeOrError)
-import Data.List (nub)
+import Data.List (nub, intercalate)
 import Control.Arrow (ArrowChoice(right))
-import Data.Char (isUpper, isLower, ord, chr)
+import Data.Char (toUpper, isUpper, isLower, ord, chr, isAsciiUpper, isAsciiLower)
+import Ch09.Ex (sentences)
+
 
 data PugType = PugData
 --     [1]       [2]
@@ -208,12 +210,12 @@ type AuthorName = String
 --   deriving (Eq, Show)
 
 
-data Expr
-  = Number Int
-  | Add Expr Expr
-  | Minus Expr
-  | Mult Expr Expr
-  | Divide Expr Expr
+-- data Expr
+--   = Number Int
+--   | Add Expr Expr
+--   | Minus Expr
+--   | Mult Expr Expr
+--   | Divide Expr Expr
 
 -- type Expr =
 --   Either Number
@@ -221,11 +223,11 @@ data Expr
 --      (Either Minus
 --        (Either Mult Divide)))
 
-type Number = Int
-type Add = (Expr, Expr)
-type Minus = Expr
-type Mult = (Expr, Expr)
-type Divide = (Expr, Expr)
+-- type Number = Int
+-- type Add = (Expr, Expr)
+-- type Minus = Expr
+-- type Mult = (Expr, Expr)
+-- type Divide = (Expr, Expr)
 
 data FlowerType
   = Gardenia
@@ -726,6 +728,7 @@ foldTree f x (Node left a right) = foldTree f (foldTree f (f a x) left) right
 -- mapTree _ Leaf = Leaf
 -- mapTree f (Node left a right) =
 --   Node (mapTree f left) (f a) (mapTree f right)
+
 data Weekday
   = Monday
   | Tuesday
@@ -741,20 +744,93 @@ f t@(a, _) = do
 g :: [a] -> a
 g xs = xs !! (length xs - 1)
 
-vigenere :: String -> String
-vigenere = undefined
+vige :: String -> String -> String
+vige _ [] = []
+vige [] _ = []
+vige (k:ks) (s:ss) = encode k s : vige (ks ++ [k]) ss
+  where
+    encode x y = chr $ 65 + mod (ord x + ord y) 26
 
--- ceaser :: Int -> String -> String
--- ceaser 0 x = x
--- ceaser _ "" = ""
--- ceaser shift str = map cipherChar str
---   where
---     cipherChar x
---       | isUpper x = change x (ord 'Z') shift
---       | isLower x = change x (ord 'z') shift
---       | otherwise = x
---       where
---         change char last shift
---           | (ord char + shift) > last = chr (ord char - 26 + shift)
---           | otherwise = chr (ord char + shift)
+-- encode :: Char -> Char
+-- encode x
+--     | isAsciiUpper x = change x (ord 'Z') 
+--     | isAsciiLower x = change x (ord 'z') shift
+--     | otherwise = x
+--     where
+--       change char last shift
+--         | (ord char + shift) > last = chr (ord char - 26 + shift)
+--         | otherwise = chr (ord char + shift)
 
+vigenere :: String -> String -> String
+vigenere key s = shiftAll (getShifts (code key s))
+  where
+    shiftAll = map (uncurry shift)
+
+shift :: Char -> Int -> Char
+shift x y = chr (ord x + y)
+
+code :: String -> String -> String
+code key string = go key string
+  where
+    go [] s = go key s
+    go _ [] = []
+    go x'@(x:xs) s'@(s:ss)
+      | x == ' ' = ' ':go xs s'
+      | s == ' ' = ' ':go x' ss
+    go (x:xs) (s:ss) = x:go xs ss
+
+getShifts :: String -> [(Char, Int)]
+getShifts = map (\c ->  (c, if isUpper c then ord c - 65 else if isLower c then ord c - 97 else 0))
+
+isSubseqOf :: (Eq a) => [a] -> [a] -> Bool
+isSubseqOf _ [] = False
+isSubseqOf x y = go x y [] x
+  where
+    go _ [] _ _ = False
+    go t@(x:xs) (y:ys) acc x'
+      | acc == x' = True
+      | x == y = acc' == x' || go xs ys acc' x'
+      | otherwise = go t ys acc x'
+      where acc' = acc ++ [x]
+
+-- this doesn't work. I got this off the internet, but mine works better
+isSubsequenceOf :: Eq a => [a] -> [a] -> Bool
+isSubsequenceOf xs ys = go xs ys
+  where
+    go [] _ = True
+    go _ [] = False
+    go (a : as) (b : bs) = (a == b && go as bs) || go xs bs
+
+capitalizeWords :: String -> [(String, String)]
+capitalizeWords x = map (\t@(x:xs) -> (t, toUpper x:xs)) $ words x
+
+capitalizeWord :: String -> String
+capitalizeWord [] = []
+capitalizeWord (x:xs) = toUpper x : xs
+
+capitalizeParagraph :: String -> String
+capitalizeParagraph x = intercalate ". " capitalSentences
+  where
+    sentences = map words (splitBy '.' x)
+    capitalWordsList = map (\(a:as) -> capitalizeWord a:as) sentences
+    capitalSentences = map unwords capitalWordsList
+
+splitBy :: Char -> String -> [String]
+splitBy _ [] = []
+splitBy sep target =
+  takeWhile (/=sep) target : splitBy sep (removeSpaces (dropWhile (== sep) (dropWhile (/= sep) target)))
+
+removeSpaces :: String -> String
+removeSpaces = dropWhile (==' ')
+
+data Expr
+  = Lit Integer
+  | Add Expr Expr
+
+eval :: Expr -> Integer
+eval (Lit x) = x
+eval (Add x y) = eval x + eval y
+
+printExpr :: Expr -> String
+printExpr (Lit x) = show x
+printExpr (Add x y) = printExpr x ++ " + " ++  printExpr y
