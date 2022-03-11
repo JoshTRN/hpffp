@@ -301,6 +301,4 @@ unfoldb f a = case f a of
 
 
 treeBuild :: Integer -> BinaryTree Integer
-treeBuild n = unfoldb f 0
-  where
-    f a | a <= n = Just (a+1, a, a+1) | otherwise = Nothing
+treeBuild n = unfoldb (\a -> if a <= n then Just (a+1, a, a+1) else Nothing) 0
