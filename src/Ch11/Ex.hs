@@ -783,6 +783,7 @@ getShifts :: String -> [(Char, Int)]
 getShifts = map (\c ->  (c, if isUpper c then ord c - 65 else if isLower c then ord c - 97 else 0))
 
 isSubseqOf :: (Eq a) => [a] -> [a] -> Bool
+isSubseqOf [] [] = True
 isSubseqOf _ [] = False
 isSubseqOf x y = go x y [] x
   where
