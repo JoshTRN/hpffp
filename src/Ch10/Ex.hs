@@ -173,7 +173,7 @@ myAny' f x = myOr (map f x)
 or' :: Bool -> Bool -> Bool
 or' a b = if a then a else b
 
-and' :: Bool ->  Bool -> Bool
+and' :: Bool -> Bool -> Bool
 and' a b = if a then b else a
 
 myElem :: Eq a => a -> [a] -> Bool
@@ -202,7 +202,9 @@ squishAgain :: [[a]] -> [a]
 squishAgain = squishMap id
 
 myMaximumBy :: (a -> a -> Ordering) -> [a] -> a
+myMaximumBy _ [] = error "empty list"
 myMaximumBy f (x:xs) = foldl (\a b -> if f a b == LT then b else a) x xs
 
 myMinimumBy :: (a -> a -> Ordering) -> [a] -> a
+myMinimumBy _ [] = error "empty list"
 myMinimumBy f (x:xs) = foldl (\a b -> if f a b == GT then b else a) x xs
