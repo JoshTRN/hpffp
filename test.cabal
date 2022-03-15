@@ -54,6 +54,7 @@ library
       Ch10.Ex
       Ch11.Ex
       Ch12.Ex
+      Ch13.Ex
       Lib
   other-modules:
       Paths_test
